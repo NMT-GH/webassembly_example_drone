@@ -1,0 +1,22 @@
+<!-- site/index.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WASM Square: Up/Down</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      html, body { height: 100%; margin: 0; background: #111; color: #eee; font-family: system-ui, sans-serif; }
+      #wrap { display: grid; place-items: center; height: 100%; gap: 12px; }
+      canvas { background: #222; border: 1px solid #333; }
+      .hint { opacity: 0.8; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <canvas id="c" width="480" height="360"></canvas>
+      <div class="hint">Hold ↑ or ↓ to move the square. Fixed-step sim runs in WebAssembly.</div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
