@@ -2,6 +2,7 @@
 #include "droneDynamics.h"
 #include "droneController.h"
 #include <math.h>
+#include <stdio.h>
 
 #define P_GAIN_ANGULAR_VELOCITY  40
 #define P_GAIN_ANGLE  20
@@ -12,7 +13,7 @@
 DRONE_EFFECTORS_T dronePositionController(VEC2D_T targetPos, DRONE_T* drone)
 {
     VEC2D_T targetVelocity     = targetPosToTargetVelocity(targetPos, drone->states.pos);
-    VEC2D_T targetAcceleration = targetWorldVelToTargetWorldAcc(targetVelocity, drone->states.vel);
+    VEC2D_T targetAcceleration = targetWorldVelToTargetWorldAcc(targetVelocity, drone->states.vel, &(drone->airframe));
     float targetAttitude       = targetWorldAccToTargetAtt(targetAcceleration);
     float targetTotalAcc       = targetWorldAccToTargetAcc(targetAcceleration, targetAttitude, drone->estimation.angle);
 
@@ -63,7 +64,7 @@ float attitudeController(float targetAngle, float currentAngle)
 
 float targetWorldAccToTargetAtt(VEC2D_T targetAcc)
 {
-    return atanf( -(targetAcc.x / (targetAcc.y + GRAVITY)) );
+    return atan2f( -targetAcc.x, (targetAcc.y + GRAVITY) );
 }
 
 float targetWorldAccToTargetAcc(VEC2D_T targetAcc, float targetAtt, float currentAtt)
@@ -72,12 +73,16 @@ float targetWorldAccToTargetAcc(VEC2D_T targetAcc, float targetAtt, float curren
     float totalAcc = sqrtf( powf(targetAcc.x,2) + powf(targetAcc.y + GRAVITY, 2) );
 
     float alignmentFactor = cosf(targetAtt - currentAtt);
+    if (((targetAtt - currentAtt) > (3.14/2)) || ((targetAtt - currentAtt) < (-3.14/2)))
+    {
+        alignmentFactor = 0;
+    }
     
 
     return totalAcc * alignmentFactor;
 }
 
-VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T targetVel, VEC2D_T currentVel)
+VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T targetVel, VEC2D_T currentVel, DRONE_AIRFRAME_T* airframe)
 {
     VEC2D_T errorVelocity;
     VEC2D_T targetAcceleration;
@@ -88,10 +93,29 @@ VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T targetVel, VEC2D_T currentVel)
     targetAcceleration.x = errorVelocity.x * P_GAIN_WORLD_VEL_WORLD_ACC;
     targetAcceleration.y = errorVelocity.y * P_GAIN_WORLD_VEL_WORLD_ACC;
 
-    if (targetAcceleration.y < -(GRAVITY * 0.9)){targetAcceleration.y = -(GRAVITY * 0.9);} 
+
+    float acc_angle = atan2f(-targetAcceleration.x, targetAcceleration.y);
+    float acc_magni = sqrtf(powf(targetAcceleration.x,2) + powf(targetAcceleration.y,2));
+
+    float acc_max_magni = -GRAVITY * cosf(acc_angle) + sqrtf(powf(2*(airframe->maxThrust/airframe->mass), 2) - powf(GRAVITY * sinf(acc_angle), 2));
+
+    if (acc_magni > 0.9 * acc_max_magni){
+        targetAcceleration.x = -sinf(acc_angle) * 0.9 * acc_max_magni;
+        targetAcceleration.y =  cosf(acc_angle) * 0.9 * acc_max_magni;
+
+        // printf("targetAcceleration.x: %.4f\r\n", targetAcceleration.x);
+        // printf("targetAcceleration.y: %.4f\r\n", targetAcceleration.y);
+        // printf("acc_max_magni: %.4f\r\n", acc_max_magni);
+        // printf("acc_magni: %.4f\r\n", acc_magni);
+        // printf("acc_angle: %.4f\r\n", acc_angle);
+    }
 
 
-    
+
+    //if (targetAcceleration.y < -(GRAVITY * 0.9)){targetAcceleration.y = -(GRAVITY * 0.9);} 
+
+
+    //printf("targetAcceleration.y: %.4f\r\n", targetAcceleration.y);
 
 
     return targetAcceleration;
@@ -107,6 +131,8 @@ VEC2D_T targetPosToTargetVelocity(VEC2D_T targetPos, VEC2D_T currentPos)
 
     targetVelocity.x = errorPosition.x * P_GAIN_POS_VEL;
     targetVelocity.y = errorPosition.y * P_GAIN_POS_VEL;
+
+    //printf("targetVelocity.y: %.4f\r\n", targetVelocity.y);
 
     return targetVelocity;
 }

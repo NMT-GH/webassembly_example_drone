@@ -9,7 +9,7 @@ float angularVelocityController(float , float );
 float attitudeController(float , float );
 float targetWorldAccToTargetAtt(VEC2D_T );
 float targetWorldAccToTargetAcc(VEC2D_T , float , float );
-VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T , VEC2D_T );
+VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T , VEC2D_T, DRONE_AIRFRAME_T*);
 VEC2D_T targetPosToTargetVelocity(VEC2D_T , VEC2D_T );
 
 #endif
