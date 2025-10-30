@@ -274,7 +274,7 @@ function tick(now) {
   const X_pos = (keys.right ? X_STEP : 0) + (keys.left ? -X_STEP : 0);
 
   while (acc >= DT) {
-    sim_step(0.6 * X_pos, 0.3 * Y_pos + 0.5);
+    sim_step(0.7 * X_pos, 0.4 * Y_pos + 0.5);
     acc -= DT;
   }
 
@@ -286,8 +286,8 @@ function tick(now) {
 
   // Use the exact same mapping the sim sees so the '+' matches the control input
   const target = {
-    x: 0.6 * X_pos,
-    y: 0.3 * Y_pos + 0.5
+    x: 0.7 * X_pos,
+    y: 0.4 * Y_pos + 0.5
   };
 
   drawFrame(drone, target);
