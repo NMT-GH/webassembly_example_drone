@@ -29,6 +29,15 @@ const drone_get_x   = Module.cwrap('drone_get_x', 'number', []);
 const drone_get_y   = Module.cwrap('drone_get_y', 'number', []);
 const drone_get_ang = Module.cwrap('drone_get_angle', 'number', []);
 
+// NEW: estimation getters (ghost drone)
+const drone_get_x_est   = Module.cwrap('drone_get_x_estimate', 'number', []);
+const drone_get_y_est   = Module.cwrap('drone_get_y_estimate', 'number', []);
+const drone_get_ang_est = Module.cwrap('drone_get_angle_estimate', 'number', []);
+
+// NEW: GNSS getters
+const drone_get_gnss_x = Module.cwrap('drone_get_gnss_x', 'number', []);
+const drone_get_gnss_y = Module.cwrap('drone_get_gnss_y', 'number', []);
+
 // --- Sim/controls setup ---
 const DT = 0.01; // s
 if (sim_init(DT) !== 0) throw new Error('sim_init failed');
@@ -152,7 +161,19 @@ function drawTargetWorld(x, y, camera) {
   ctx.restore();
 }
 
-function drawDroneWorld(x, y, ang, camera) {
+// NEW: GNSS dot (world units)
+function drawGnssWorld(x, y, camera) {
+  ctx.save();
+  const r = 0.02; // meters (~6 px at zoom*ppm≈300)
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.1)'; // light grey, filled
+  ctx.fill();
+  ctx.restore();
+}
+
+// Updated: allow a custom color (defaults preserve current behavior)
+function drawDroneWorld(x, y, ang, camera, color = '#ffffffff') {
   ctx.save();
   ctx.translate(x, y);
 
@@ -181,24 +202,34 @@ function drawDroneWorld(x, y, ang, camera) {
   ctx.lineTo(c - a/2,  c);
   ctx.closePath();
 
-  ctx.fillStyle = '#ffffffff';
+  ctx.fillStyle = color;
   ctx.fill();
-  ctx.strokeStyle = '#ffffffff';
+  ctx.strokeStyle = color;
   ctx.lineWidth = 0 / (camera.zoom * ppm); // keep strokes ~2px on screen
   ctx.stroke();
 
   ctx.restore();
 }
 
-function renderWorld(camera, viewportPx, drone, target) {
+// Updated: takes optional ghost drone and GNSS dot; draws GNSS behind drones
+function renderWorld(camera, viewportPx, drone, target, ghostDrone = null, gnss = null) {
   beginCamera(camera, viewportPx);
   drawGridWorld(camera, viewportPx);
   drawGroundWorld(camera, viewportPx);
 
-  // draw target behind the drone
   if (target) drawTargetWorld(target.x, target.y, camera);
 
+  // GNSS position (behind)
+  if (gnss) drawGnssWorld(gnss.x, gnss.y, camera);
+
+  // GHOST FIRST (behind): cyan-ish, slightly transparent
+  if (ghostDrone) {
+    drawDroneWorld(ghostDrone.x, ghostDrone.y, ghostDrone.ang, camera, '#00ffff99');
+  }
+
+  // ACTUAL DRONE
   drawDroneWorld(drone.x, drone.y, drone.ang, camera);
+
   endCamera();
 }
 
@@ -226,7 +257,7 @@ const INSET_PADDING = 12;
 const INSET_ZOOM    = 2.5;
 
 // ——— Frame render ———
-function drawFrame(drone, target) {
+function drawFrame(drone, ghostDrone, target, gnss) {
   // Clear whole canvas to background color
   ctx.fillStyle = '#191919ff'; // ← same as inset bg
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -235,16 +266,16 @@ function drawFrame(drone, target) {
   const W = canvas.width / dpr;
   const H = canvas.height / dpr;
 
-  // MAIN CAMERA
+  // MAIN CAMERA (follow actual drone)
   const mainCam = {
     x: 0.3 * drone.x,
     y: 0.3 * drone.y + 0.3,
     zoom: 1.5
   };
   const mainViewport = { x: 0, y: 0, w: W, h: H };
-  renderWorld(mainCam, mainViewport, drone, target);
+  renderWorld(mainCam, mainViewport, drone, target, ghostDrone, gnss);
 
-  // INSET CAMERA
+  // INSET CAMERA (centered on actual drone)
   const size = Math.min(INSET_SIZE_PX, Math.min(W, H) - 2 * INSET_PADDING);
   const ix = W - size - INSET_PADDING;
   const iy = INSET_PADDING;
@@ -257,7 +288,7 @@ function drawFrame(drone, target) {
     zoom: INSET_ZOOM
   };
   const insetViewport = { x: ix, y: iy, w: size, h: size };
-  renderWorld(insetCam, insetViewport, drone, target);
+  renderWorld(insetCam, insetViewport, drone, target, ghostDrone, gnss);
 }
 
 // ——— Fixed-step sim loop ———
@@ -284,13 +315,26 @@ function tick(now) {
     ang: drone_get_ang()
   };
 
+  // NEW: ghost/estimated state
+  const ghostDrone = {
+    x:   drone_get_x_est(),
+    y:   drone_get_y_est(),
+    ang: drone_get_ang_est()
+  };
+
+  // NEW: GNSS reading
+  const gnss = {
+    x: drone_get_gnss_x(),
+    y: drone_get_gnss_y()
+  };
+
   // Use the exact same mapping the sim sees so the '+' matches the control input
   const target = {
     x: 0.7 * X_pos,
     y: 0.4 * Y_pos + 0.5
   };
 
-  drawFrame(drone, target);
+  drawFrame(drone, ghostDrone, target, gnss);
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);

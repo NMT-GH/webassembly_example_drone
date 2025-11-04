@@ -36,6 +36,8 @@ typedef struct{
 
 typedef struct{
     float angle;
+    VEC2D_T pos;
+    VEC2D_T vel;
 } DRONE_ESTIMATION_T;
 
 typedef struct{

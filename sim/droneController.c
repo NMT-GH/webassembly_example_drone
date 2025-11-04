@@ -7,13 +7,14 @@
 #define P_GAIN_ANGULAR_VELOCITY  40
 #define P_GAIN_ANGLE  30
 #define P_GAIN_WORLD_VEL_WORLD_ACC  11
-#define P_GAIN_POS_VEL  4.5
+#define P_GAIN_POS_VEL  4
 
 
 DRONE_EFFECTORS_T dronePositionController(VEC2D_T targetPos, DRONE_T* drone)
 {
-    VEC2D_T targetVelocity     = targetPosToTargetVelocity(targetPos, drone->states.pos, &(drone->airframe));
-    VEC2D_T targetAcceleration = targetWorldVelToTargetWorldAcc(targetVelocity, drone->states.vel, &(drone->airframe));
+
+    VEC2D_T targetVelocity     = targetPosToTargetVelocity(targetPos, drone->estimation.pos, &(drone->airframe));
+    VEC2D_T targetAcceleration = targetWorldVelToTargetWorldAcc(targetVelocity, drone->estimation.vel, &(drone->airframe));
     float targetAttitude       = targetWorldAccToTargetAtt(targetAcceleration);
     float targetTotalAcc       = targetWorldAccToTargetAcc(targetAcceleration, targetAttitude, drone->estimation.angle);
 
@@ -48,7 +49,7 @@ DRONE_EFFECTORS_T forceMomentController(float targetAccel, float targetAngularAc
 
 float angularVelocityController(float targetAngularVelocity, float currentAngularVelocity)
 {
-    // proportional control for now
+    // proportional for now
     float angVelError = targetAngularVelocity - currentAngularVelocity;
 
     return angVelError * P_GAIN_ANGULAR_VELOCITY;
@@ -56,7 +57,7 @@ float angularVelocityController(float targetAngularVelocity, float currentAngula
 
 float attitudeController(float targetAngle, float currentAngle)
 {
-    // proportional control for now
+    // proportional for now
     float angleError = targetAngle - currentAngle;
 
     return angleError * P_GAIN_ANGLE;
@@ -93,7 +94,7 @@ VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T targetVel, VEC2D_T currentVel,  D
     targetAcceleration.x = errorVelocity.x * P_GAIN_WORLD_VEL_WORLD_ACC;
     targetAcceleration.y = errorVelocity.y * P_GAIN_WORLD_VEL_WORLD_ACC;
 
-
+    
     float acc_angle = atan2f(-targetAcceleration.x, targetAcceleration.y);
     float acc_magni = sqrtf(powf(targetAcceleration.x,2) + powf(targetAcceleration.y,2));
 
