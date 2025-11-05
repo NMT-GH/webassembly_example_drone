@@ -111,6 +111,11 @@ VEC2D_T targetWorldVelToTargetWorldAcc(VEC2D_T targetVel, VEC2D_T currentVel,  D
         // printf("acc_angle: %.4f\r\n", acc_angle);
     }
 
+    if(targetAcceleration.y < 0.95* -9.81)
+    {
+        targetAcceleration.y = 0.95 * -9.81;
+    }
+
 
 
     //if (targetAcceleration.y < -(GRAVITY * 0.9)){targetAcceleration.y = -(GRAVITY * 0.9);} 

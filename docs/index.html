@@ -1,22 +1,26 @@
-<!-- site/index.html -->
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>WASM Square: Up/Down</title>
+    <title>Simulations</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
-      html, body { height: 100%; margin: 0; background: #111; color: #eee; font-family: system-ui, sans-serif; }
-      #wrap { display: grid; place-items: center; height: 100%; gap: 12px; }
-      canvas { background: #222; border: 1px solid #333; }
-      .hint { opacity: 0.8; font-size: 14px; }
+      html, body {
+        height: 100%; margin: 0; background: #111; color: #eee; font-family: system-ui, sans-serif;
+        display: grid; place-items: center;
+      }
+      main { display: grid; gap: 16px; text-align: center; }
+      a {
+        color: rgb(133, 233, 255); text-decoration: none; padding: 12px 18px; border: 1px solid rgb(133, 233, 255); border-radius: 1px;
+      }
+      a:hover { background: rgb(133, 233, 255); color: #111; }
     </style>
   </head>
   <body>
-    <div id="wrap">
-      <canvas id="c" width="480" height="360"></canvas>
-      <div class="hint">Use up, down, left and right keys to change target Position</div>
-    </div>
-    <script type="module" src="./main.js"></script>
+    <main>
+      <h1>Choose a Simulation</h1>
+      <a href="./drone_kf/drone_kf_page/"> Drone Simulation</a>
+      <!--  <a href="./fixedwing/fixedwingPage/"> Fixed-Wing Simulation</a> -->
+    </main>
   </body>
 </html>

@@ -164,10 +164,10 @@ function drawTargetWorld(x, y, camera) {
 // NEW: GNSS dot (world units)
 function drawGnssWorld(x, y, camera) {
   ctx.save();
-  const r = 0.02; // meters (~6 px at zoom*ppm≈300)
+  const r = 0.015; // meters (~6 px at zoom*ppm≈300)
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.1)'; // light grey, filled
+  ctx.fillStyle = 'rgba(255,255,255,0.05)'; // light grey, filled
   ctx.fill();
   ctx.restore();
 }
