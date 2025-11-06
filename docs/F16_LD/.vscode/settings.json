@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "integrator.h": "c",
+        "dronedynamics.h": "c",
+        "drone.h": "c",
+        "dronecontroller.h": "c",
+        "math.h": "c",
+        "droneestimation.h": "c",
+        "stdlib.h": "c",
+        "dronesensors.h": "c"
+    }
+}

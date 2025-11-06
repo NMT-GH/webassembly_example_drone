@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d');
 
 // ——— Canvas & DPI ———
 function setupCanvasSize() {
-  const cssWidth  = 800;
+  const cssWidth  = 1000;
   const cssHeight = 400;
 
   const dpr = window.devicePixelRatio || 1;
